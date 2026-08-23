@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ساحة المعرفة</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg:#0D1226;
+  --bg-2:#10162B;
+  --surface:#1B2340;
+  --surface-2:#232C50;
+  --border:rgba(255,255,255,0.08);
+  --gold:#E7B44C;
+  --teal:#3FA98C;
+  --rose:#E4636F;
+  --peri:#7C8CF0;
+  --text:#F3F1EA;
+  --muted:#93A0C4;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'IBM Plex Sans Arabic', sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(63,169,140,0.10), transparent 45%),
+    radial-gradient(circle at 100% 20%, rgba(231,180,76,0.08), transparent 40%),
+    var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 14px 40px;
+}
+.wrap{width:100%; max-width:560px; display:flex; flex-direction:column; align-items:center; gap:18px;}
+
+h1,h2,h3, .num, .flip{font-family:'Tajawal', sans-serif;}
+
+/* ---------- top bar ---------- */
+.topbar{width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.room-chip{
+  font-family:'Tajawal'; font-weight:800; letter-spacing:2px;
+  background:var(--surface); border:1px solid var(--border);
+  padding:8px 14px; border-radius:10px; font-size:14px; color:var(--gold);
+  display:flex; align-items:center; gap:8px;
+}
+.leave-btn{
+  background:transparent; border:1px solid var(--border); color:var(--muted);
+  width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+}
+.leave-btn:hover{color:var(--rose); border-color:var(--rose);}
+
+/* ---------- generic card ---------- */
+.card{
+  width:100%; background:var(--surface); border:1px solid var(--border);
+  border-radius:18px; padding:26px 22px; box-shadow:0 20px 40px rgba(0,0,0,0.25);
+}
+
+/* ---------- home ---------- */
+.hero{
+  text-align:center; padding:14px 0 4px;
+}
+.hero .badge{
+  display:inline-block; font-family:'Tajawal'; font-weight:700; font-size:12px;
+  letter-spacing:3px; color:var(--teal); background:rgba(63,169,140,0.12);
+  border:1px solid rgba(63,169,140,0.35); padding:6px 14px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:34px; font-weight:900; line-height:1.3;}
+.hero h1 span{color:var(--gold);}
+.hero p{color:var(--muted); margin-top:8px; font-size:14px;}
+
+.field label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px; font-weight:600;}
+.field input{
+  width:100%; background:var(--bg-2); border:1px solid var(--border); color:var(--text);
+  padding:13px 14px; border-radius:12px; font-size:16px; font-family:inherit; outline:none;
+}
+.field input:focus{border-color:var(--teal);}
+.field{margin-bottom:14px;}
+
+.btn{
+  font-family:'Tajawal'; font-weight:800; font-size:16px; border:none; border-radius:12px;
+  padding:14px 18px; cursor:pointer; width:100%; transition:transform .12s ease, opacity .12s ease;
+}
+.btn:active{transform:scale(0.98);}
+.btn:disabled{opacity:0.4; cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg, var(--teal), #2f8a71); color:#08150F;}
+.btn-gold{background:linear-gradient(135deg, var(--gold), #c99225); color:#241800;}
+.btn-ghost{background:transparent; border:1px solid var(--border); color:var(--text);}
+.btn-danger{background:transparent; border:1px solid var(--rose); color:var(--rose);}
+
+.divider{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin:18px 0;}
+.divider::before, .divider::after{content:''; flex:1; height:1px; background:var(--border);}
+
+.join-row{display:flex; gap:10px;}
+.join-row input{text-align:center; letter-spacing:4px; font-family:'Tajawal'; font-weight:800;}
+.join-row .btn{width:auto; flex-shrink:0;}
+
+.status-msg{font-size:13px; color:var(--rose); margin-top:10px; min-height:16px; text-align:center;}
+
+/* ---------- lobby ---------- */
+.ticket{
+  width:100%; background:linear-gradient(135deg, var(--surface-2), var(--surface));
+  border:1px dashed rgba(231,180,76,0.5); border-radius:16px; padding:18px; text-align:center;
+  position:relative;
+}
+.ticket .lbl{font-size:12px; color:var(--muted); letter-spacing:2px; font-weight:600;}
+.ticket .code{font-family:'Tajawal'; font-weight:900; font-size:38px; letter-spacing:10px; color:var(--gold); margin:6px 0;}
+.ticket button{
+  background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text);
+  font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer; font-family:'IBM Plex Sans Arabic';
+}
+
+.players-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%;}
+.pslot{
+  background:var(--bg-2); border:1px solid var(--border); border-radius:14px; padding:14px;
+  display:flex; align-items:center; gap:10px; min-height:64px;
+}
+.pslot.empty{border-style:dashed; color:var(--muted); justify-content:center; font-size:13px;}
+.avatar{
+  width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:'Tajawal'; font-weight:800; color:#0B0F1E; font-size:16px; flex-shrink:0;
+}
+.pname{font-weight:700; font-size:14px;}
+.pscore{font-size:12px; color:var(--muted);}
+
+.qcount-row{display:flex; gap:8px; width:100%; margin:6px 0 4px;}
+.qcount-btn{
+  flex:1; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg-2);
+  color:var(--text); font-family:'Tajawal'; font-weight:700; cursor:pointer; font-size:14px;
+}
+.qcount-btn.active{background:var(--teal); color:#08150F; border-color:var(--teal);}
+
+.section-lbl{font-size:12px; color:var(--muted); font-weight:600; letter-spacing:1px; margin:4px 2px;}
+
+/* ---------- playing ---------- */
+.playbar{width:100%; display:flex; align-items:center; justify-content:space-between;}
+.qmeta{display:flex; flex-direction:column; gap:4px;}
+.qmeta .qnum{font-family:'Tajawal'; font-weight:800; font-size:15px;}
+.qcat{
+  display:inline-block; width:fit-content; font-size:11px; font-weight:700; color:var(--peri);
+  background:rgba(124,140,240,0.14); border:1px solid rgba(124,140,240,0.35);
+  padding:3px 10px; border-radius:999px;
+}
+.timer-ring{
+  --pct:100%; --ring-color:var(--teal);
+  width:66px; height:66px; border-radius:50%; position:relative; flex-shrink:0;
+  background:conic-gradient(var(--ring-color) calc(var(--pct)*1%), rgba(255,255,255,0.08) 0);
+  transition:background .2s linear;
+}
+.timer-ring::before{content:''; position:absolute; inset:5px; border-radius:50%; background:var(--surface);}
+.timer-ring span{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-family:'Tajawal'; font-weight:800; font-size:20px;
+}
+
+.qtext{
+  font-family:'Tajawal'; font-weight:800; font-size:22px; line-height:1.5; text-align:center;
+  padding:22px 4px 6px;
+}
+
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%;}
+.opt{
+  border-radius:14px; padding:16px 12px; text-align:center; font-weight:700; font-size:15px;
+  cursor:pointer; border:2px solid var(--border); background:var(--bg-2); color:var(--text);
+  transition:transform .1s ease, border-color .15s ease, opacity .15s ease;
+  min-height:64px; display:flex; align-items:center; justify-content:center;
+}
+.opt:active{transform:scale(0.97);}
+.opt.c0{border-color:rgba(63,169,140,0.4);}
+.opt.c1{border-color:rgba(231,180,76,0.4);}
+.opt.c2{border-color:rgba(228,99,111,0.4);}
+.opt.c3{border-color:rgba(124,140,240,0.4);}
+.opt.selected{background:var(--surface-2); border-color:var(--gold); box-shadow:0 0 0 2px rgba(231,180,76,0.25) inset;}
+.opt.correct{background:rgba(63,169,140,0.22); border-color:var(--teal); color:var(--text);}
+.opt.wrong{background:rgba(228,99,111,0.16); border-color:var(--rose); opacity:0.8;}
+.opt.dim{opacity:0.45;}
+.opt.disabled{cursor:default;}
+
+.waitline{text-align:center; color:var(--muted); font-size:13px; margin-top:4px;}
+.answered-row{display:flex; gap:6px; justify-content:center; margin-top:10px; flex-wrap:wrap;}
+.mini-av{width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#0B0F1E; opacity:0.35;}
+.mini-av.done{opacity:1;}
+
+/* ---------- reveal ---------- */
+.reveal-note{text-align:center; font-family:'Tajawal'; font-weight:800; font-size:15px; color:var(--gold); margin-bottom:2px;}
+.gain-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:12px;}
+.gain-pill{
+  font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; display:flex; gap:6px; align-items:center;
+  background:var(--bg-2); border:1px solid var(--border);
+}
+.gain-pill .plus{color:var(--teal); font-family:'Tajawal'; font-weight:800;}
+
+/* ---------- finished / leaderboard ---------- */
+.podium{display:flex; align-items:flex-end; justify-content:center; gap:10px; width:100%; margin:10px 0 20px;}
+.pod-col{display:flex; flex-direction:column; align-items:center; gap:8px; width:31%;}
+.pod-bar{width:100%; border-radius:10px 10px 0 0; display:flex; align-items:flex-start; justify-content:center; padding-top:8px;}
+.pod-bar .rank{font-family:'Tajawal'; font-weight:900; font-size:20px;}
+.pod-1 .pod-bar{height:110px; background:linear-gradient(180deg, var(--gold), #a9791f);}
+.pod-2 .pod-bar{height:80px; background:linear-gradient(180deg, #C7CBDA, #8b90a3);}
+.pod-3 .pod-bar{height:58px; background:linear-gradient(180deg, #D68A5C, #96562f);}
+.pod-name{font-size:13px; font-weight:700; text-align:center;}
+.pod-score{font-size:12px; color:var(--muted);}
+
+.lb-row{
+  display:flex; align-items:center; gap:12px; width:100%; padding:12px 14px; background:var(--bg-2);
+  border:1px solid var(--border); border-radius:12px; margin-bottom:8px;
+}
+.lb-rank{font-family:'Tajawal'; font-weight:800; color:var(--muted); width:20px;}
+.lb-name{flex:1; font-weight:700; font-size:14px;}
+.flip{
+  font-weight:800; font-size:16px; background:var(--surface-2); padding:4px 10px; border-radius:8px;
+  min-width:44px; text-align:center; border:1px solid var(--border);
+}
+
+.footer-actions{display:flex; gap:10px; width:100%; margin-top:6px;}
+
+.fade-in{animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+
+.small-hint{font-size:12px; color:var(--muted); text-align:center; margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+
+/* ================= QUESTION BANK ================= */
+const QUESTIONS = [
+// جغرافيا
+{cat:"جغرافيا", q:"ما هي عاصمة اليابان؟", opts:["طوكيو","أوساكا","كيوتو","ناغويا"], c:0},
+{cat:"جغرافيا", q:"ما هو أطول نهر في العالم؟", opts:["النيل","الأمازون","المسيسبي","اليانغتسي"], c:0},
+{cat:"جغرافيا", q:"ما هي أكبر قارة من حيث المساحة؟", opts:["آسيا","أفريقيا","أمريكا الشمالية","أوروبا"], c:0},
+{cat:"جغرافيا", q:"ما هي أصغر دولة في العالم من حيث المساحة؟", opts:["الفاتيكان","موناكو","سان مارينو","ليختنشتاين"], c:0},
+{cat:"جغرافيا", q:"في أي قارة تقع الصحراء الكبرى؟", opts:["أفريقيا","آسيا","أستراليا","أمريكا الجنوبية"], c:0},
+{cat:"جغرافيا", q:"ما هي عاصمة أستراليا؟", opts:["كانبيرا","سيدني","ملبورن","بيرث"], c:0},
+{cat:"جغرافيا", q:"ما هي أعلى قمة جبلية في العالم؟", opts:["إفرست","كي 2","كليمنجارو","إلبروس"], c:0},
+{cat:"جغرافيا", q:"ما هو أكبر محيط في العالم؟", opts:["الهادئ","الأطلسي","الهندي","المتجمد الشمالي"], c:0},
+{cat:"جغرافيا", q:"ما هي عاصمة مصر؟", opts:["القاهرة","الإسكندرية","الجيزة","الأقصر"], c:0},
+{cat:"جغرافيا", q:"أي دولة تُعرف بـ«أرض الشمس المشرقة»؟", opts:["اليابان","الصين","كوريا الجنوبية","تايلاند"], c:0},
+{cat:"جغرافيا", q:"ما هي أكبر جزيرة في العالم؟", opts:["غرينلاند","مدغشقر","بورنيو","سومطرة"], c:0},
+{cat:"جغرافيا", q:"نهرا دجلة والفرات يجريان بشكل رئيسي في أي دولة؟", opts:["العراق","سوريا","تركيا","إيران"], c:0},
+{cat:"جغرافيا", q:"ما اسم أكبر صحراء رملية حارة في العالم؟", opts:["الصحراء الكبرى","صحراء أستراليا الكبرى","صحراء أريزونا","صحراء كالاهاري"], c:0},
+{cat:"جغرافيا", q:"ما هي عاصمة فرنسا؟", opts:["باريس","ليون","مرسيليا","نيس"], c:0},
+{cat:"جغرافيا", q:"ما هو أطول سلسلة جبال فوق سطح الأرض؟", opts:["الأنديز","الهيمالايا","الروكي","الألب"], c:0},
+{cat:"جغرافيا", q:"ما اسم المضيق الذي يفصل آسيا عن أوروبا في إسطنبول؟", opts:["مضيق البوسفور","مضيق جبل طارق","مضيق هرمز","مضيق ملقا"], c:0},
+{cat:"جغرافيا", q:"ما هي عاصمة الإمارات العربية المتحدة؟", opts:["أبوظبي","دبي","الشارقة","عجمان"], c:0},
+{cat:"جغرافيا", q:"ما هو النهر الذي يمر عبر مدينة بغداد؟", opts:["نهر دجلة","نهر الفرات","النيل","الأمازون"], c:0},
+{cat:"جغرافيا", q:"ما اسم أكبر بحيرة في العالم من حيث المساحة؟", opts:["بحر قزوين","بحيرة سوبيريور","بحيرة فيكتوريا","بحيرة بايكال"], c:0},
+{cat:"جغرافيا", q:"غابة الأمازون المطيرة، أكبر غابة استوائية، تقع بشكل رئيسي في أي قارة؟", opts:["أمريكا الجنوبية","أفريقيا","آسيا","أستراليا"], c:0},
+// علوم
+{cat:"علوم", q:"ما هو الغاز الذي يشكّل الجزء الأكبر من الغلاف الجوي للأرض؟", opts:["النيتروجين","الأكسجين","ثاني أكسيد الكربون","الهيدروجين"], c:0},
+{cat:"علوم", q:"كم عدد كواكب المجموعة الشمسية حالياً؟", opts:["8","9","7","10"], c:0},
+{cat:"علوم", q:"ما هو الرمز الكيميائي للماء؟", opts:["H2O","CO2","O2","NaCl"], c:0},
+{cat:"علوم", q:"ما هو أقرب كوكب إلى الشمس؟", opts:["عطارد","الزهرة","الأرض","المريخ"], c:0},
+{cat:"علوم", q:"من صاحب قانون الجاذبية العامة؟", opts:["إسحاق نيوتن","ألبرت أينشتاين","غاليليو","نيكولا تسلا"], c:0},
+{cat:"علوم", q:"ما هي وحدة قياس القوة في النظام الدولي؟", opts:["نيوتن","جول","واط","باسكال"], c:0},
+{cat:"علوم", q:"كم عدد عظام جسم الإنسان البالغ تقريباً؟", opts:["206","150","300","250"], c:0},
+{cat:"علوم", q:"ما هو العضو المسؤول عن ضخ الدم في جسم الإنسان؟", opts:["القلب","الكبد","الرئة","الكلية"], c:0},
+{cat:"علوم", q:"ما هو الغاز الذي يحتاجه الإنسان للتنفس؟", opts:["الأكسجين","النيتروجين","ثاني أكسيد الكربون","الهيليوم"], c:0},
+{cat:"علوم", q:"ما هي أصغر وحدة بنائية في جسم الكائن الحي؟", opts:["الخلية","الذرة","النسيج","الجزيء"], c:0},
+{cat:"علوم", q:"ما اسم العملية التي تستخدم بها النباتات ضوء الشمس لصنع غذائها؟", opts:["البناء الضوئي","التنفس","التبخر","التحلل"], c:0},
+{cat:"علوم", q:"من يُنسب إليه تجارياً اختراع المصباح الكهربائي؟", opts:["توماس إديسون","نيكولا تسلا","ألكسندر بيل","بنجامين فرانكلين"], c:0},
+{cat:"علوم", q:"كم تبلغ سرعة الضوء تقريباً في الفراغ؟", opts:["300,000 كم/ثانية","150,000 كم/ثانية","1,000,000 كم/ثانية","30,000 كم/ثانية"], c:0},
+{cat:"علوم", q:"ما هو الكوكب المعروف بـ«الكوكب الأحمر»؟", opts:["المريخ","المشتري","زحل","عطارد"], c:0},
+{cat:"علوم", q:"ما هي المادة الوراثية الموجودة في نواة الخلية؟", opts:["DNA","RNA فقط","البروتين","الدهون"], c:0},
+{cat:"علوم", q:"كم عدد أسنان الإنسان البالغ الطبيعية؟", opts:["32","28","30","36"], c:0},
+{cat:"علوم", q:"ما اسم القوة التي تجذب الأجسام نحو مركز الأرض؟", opts:["الجاذبية","الطفو","الاحتكاك","المغناطيسية"], c:0},
+{cat:"علوم", q:"أي فلز يكون سائلاً في درجة حرارة الغرفة؟", opts:["الزئبق","الحديد","الرصاص","النحاس"], c:0},
+{cat:"علوم", q:"ما هو أكبر كوكب في المجموعة الشمسية؟", opts:["المشتري","زحل","أورانوس","نبتون"], c:0},
+{cat:"علوم", q:"كم عدد حجرات القلب البشري؟", opts:["4","2","3","5"], c:0},
+// تاريخ
+{cat:"تاريخ", q:"في أي عام بدأت الحرب العالمية الثانية؟", opts:["1939","1914","1945","1929"], c:0},
+{cat:"تاريخ", q:"من هو أول رئيس للولايات المتحدة الأمريكية؟", opts:["جورج واشنطن","أبراهام لينكولن","توماس جيفرسون","بنجامين فرانكلين"], c:0},
+{cat:"تاريخ", q:"في أي عام انتهت الحرب العالمية الثانية؟", opts:["1945","1939","1918","1950"], c:0},
+{cat:"تاريخ", q:"أي حضارة قديمة بنت أهرامات الجيزة؟", opts:["الحضارة المصرية القديمة","الحضارة الرومانية","الحضارة اليونانية","حضارة بابل"], c:0},
+{cat:"تاريخ", q:"في أي منطقة نشأت الحضارة السومرية؟", opts:["بلاد الرافدين (العراق)","أفريقيا","أوروبا","أمريكا"], c:0},
+{cat:"تاريخ", q:"ما اسم أول قمر صناعي أُطلق إلى الفضاء؟", opts:["سبوتنيك 1","أبولو 11","فوييجر 1","هابل"], c:0},
+{cat:"تاريخ", q:"في أي عام هبط أول إنسان على سطح القمر؟", opts:["1969","1965","1972","1959"], c:0},
+{cat:"تاريخ", q:"من يُنسب إليه اكتشاف قارة أمريكا بحسب الرواية الأوروبية الشائعة؟", opts:["كريستوفر كولومبوس","ماجلان","فاسكو دا غاما","ماركو بولو"], c:0},
+{cat:"تاريخ", q:"ما اسم السفينة الشهيرة التي غرقت عام 1912؟", opts:["تايتانيك","لوسيتانيا","بسمارك","كوين ماري"], c:0},
+{cat:"تاريخ", q:"في أي مدينة عراقية تقع بقايا مدينة بابل القديمة؟", opts:["الحلة","بغداد","الموصل","البصرة"], c:0},
+{cat:"تاريخ", q:"في أي عام انتهت الحرب العالمية الأولى؟", opts:["1918","1914","1922","1939"], c:0},
+{cat:"تاريخ", q:"أي إمبراطورية حكمها الإسكندر الأكبر؟", opts:["الإمبراطورية المقدونية اليونانية","الإمبراطورية الرومانية","الإمبراطورية الفارسية","الإمبراطورية العثمانية"], c:0},
+{cat:"تاريخ", q:"في أي قرن ميلادي سقطت الإمبراطورية الرومانية الغربية تقريباً؟", opts:["القرن الخامس","القرن العاشر","القرن الثالث","القرن الخامس عشر"], c:0},
+{cat:"تاريخ", q:"من هو مخترع الطباعة بالحروف المتحركة في أوروبا؟", opts:["يوهان غوتنبرغ","ليوناردو دافنشي","إسحاق نيوتن","غاليليو غاليلي"], c:0},
+{cat:"تاريخ", q:"في أي عام سقط جدار برلين؟", opts:["1989","1991","1985","1975"], c:0},
+{cat:"تاريخ", q:"تقع مدينة أور الأثرية السومرية جنوب أي دولة؟", opts:["العراق","مصر","سوريا","الأردن"], c:0},
+{cat:"تاريخ", q:"من هو القائد الذي قادت بعثته أول رحلة طواف حول العالم بحراً رغم وفاته أثناءها؟", opts:["فرديناند ماجلان","كريستوفر كولومبوس","جيمس كوك","فاسكو دا غاما"], c:0},
+// رياضة
+{cat:"رياضة", q:"كم عدد لاعبي فريق كرة القدم على أرض الملعب في المباراة الواحدة؟", opts:["11","10","12","9"], c:0},
+{cat:"رياضة", q:"كل كم سنة تقام بطولة كأس العالم لكرة القدم؟", opts:["4 سنوات","سنتين","3 سنوات","5 سنوات"], c:0},
+{cat:"رياضة", q:"في أي دولة أقيمت كأس العالم 2022؟", opts:["قطر","البرازيل","روسيا","ألمانيا"], c:0},
+{cat:"رياضة", q:"كم عدد لاعبي فريق كرة السلة على أرض الملعب؟", opts:["5","6","7","4"], c:0},
+{cat:"رياضة", q:"أي نادٍ يملك أكبر عدد من ألقاب دوري أبطال أوروبا حتى الآن؟", opts:["ريال مدريد","برشلونة","بايرن ميونخ","ليفربول"], c:0},
+{cat:"رياضة", q:"ما اسم دوري كرة السلة الأمريكي المحترف؟", opts:["NBA","NFL","MLB","NHL"], c:0},
+{cat:"رياضة", q:"كم عدد أشواط مباراة كرة القدم الرسمية بدون وقت إضافي؟", opts:["شوطان","ثلاثة أشواط","شوط واحد","أربعة أشواط"], c:0},
+{cat:"رياضة", q:"كم مدة الشوط الواحد في كرة القدم؟", opts:["45 دقيقة","30 دقيقة","60 دقيقة","40 دقيقة"], c:0},
+{cat:"رياضة", q:"أي منتخب فاز بأكبر عدد من كؤوس العالم لكرة القدم حتى الآن؟", opts:["البرازيل","ألمانيا","إيطاليا","الأرجنتين"], c:0},
+{cat:"رياضة", q:"في أي رياضة يُستخدم مصطلح «الضربة الساحقة» (سماش)؟", opts:["التنس وتنس الطاولة والريشة","كرة القدم","الملاكمة","السباحة"], c:0},
+{cat:"رياضة", q:"حلقات الأولمبياد الخمس تمثل ماذا؟", opts:["القارات المأهولة","الفصول الأربعة","الدول المؤسسة","الميداليات"], c:0},
+{cat:"رياضة", q:"كل كم سنة تقام الألعاب الأولمبية الصيفية؟", opts:["4 سنوات","سنتين","3 سنوات","6 سنوات"], c:0},
+{cat:"رياضة", q:"بماذا يُلقَّب كأس بطولة دوري أبطال أوروبا لكرة القدم؟", opts:["الكأس ذات الأذنين","الكأس الذهبية","درع الاتحاد","كأس القارات"], c:0},
+{cat:"رياضة", q:"من صاحب الرقم القياسي في عدد الأهداف عبر تاريخ نهائيات كأس العالم؟", opts:["ميروسلاف كلوزه","بيليه","مارادونا","رونالدو نازاريو"], c:0},
+{cat:"رياضة", q:"كم عدد اللاعبين الأساسيين لفريق الكرة الطائرة داخل الملعب؟", opts:["6","5","7","4"], c:0},
+{cat:"رياضة", q:"في أي رياضة تُقام بطولة «ويمبلدون»؟", opts:["التنس","الغولف","الكريكيت","الرغبي"], c:0},
+{cat:"رياضة", q:"في أي رياضة يُستخدم القفاز والحلبة وضربات اللكم؟", opts:["الملاكمة","المصارعة","الكاراتيه","السباحة"], c:0},
+{cat:"رياضة", q:"ما اللون الذي يرمز عادة لأعلى مستوى حزام في الجودو والكاراتيه؟", opts:["الأسود","الأبيض","الأصفر","الأزرق"], c:0},
+// ثقافة عامة
+{cat:"ثقافة عامة", q:"كم عدد أيام السنة الميلادية العادية؟", opts:["365","360","366","364"], c:0},
+{cat:"ثقافة عامة", q:"كم عدد أشهر السنة؟", opts:["12","10","11","13"], c:0},
+{cat:"ثقافة عامة", q:"ما هي اللغة الأكثر تحدثاً في العالم كلغة أم؟", opts:["الصينية الماندرين","الإنجليزية","الإسبانية","العربية"], c:0},
+{cat:"ثقافة عامة", q:"كم عدد قارات العالم؟", opts:["7","5","6","8"], c:0},
+{cat:"ثقافة عامة", q:"ما هي أكبر دولة في العالم من حيث المساحة؟", opts:["روسيا","كندا","الصين","الولايات المتحدة"], c:0},
+{cat:"ثقافة عامة", q:"ما اسم العملة المستخدمة في معظم دول الاتحاد الأوروبي؟", opts:["اليورو","الدولار","الجنيه الإسترليني","الفرنك"], c:0},
+{cat:"ثقافة عامة", q:"كم عدد ألوان قوس قزح الأساسية؟", opts:["7","6","5","8"], c:0},
+{cat:"ثقافة عامة", q:"ما أطول جدار دفاعي بناه الإنسان عبر التاريخ؟", opts:["سور الصين العظيم","جدار برلين","جدار هادريان","الجدار العازل"], c:0},
+{cat:"ثقافة عامة", q:"ما اسم أشهر برج في باريس يُعد رمزاً لفرنسا؟", opts:["برج إيفل","قوس النصر","متحف اللوفر","كاتدرائية نوتردام"], c:0},
+{cat:"ثقافة عامة", q:"كم عدد حروف اللغة العربية؟", opts:["28","26","30","25"], c:0},
+{cat:"ثقافة عامة", q:"ما هو أسرع حيوان بري في العالم؟", opts:["الفهد الصياد (الشيتا)","الأسد","النمر","الغزال"], c:0},
+{cat:"ثقافة عامة", q:"في أي جزيرة تشتهر التماثيل الحجرية الضخمة المعروفة بـ«موآي»؟", opts:["جزيرة الفصح","جزر المالديف","هاواي","بالي"], c:0},
+{cat:"ثقافة عامة", q:"ما اسم أشهر متحف فني في العالم، ويقع في باريس؟", opts:["متحف اللوفر","متحف أورساي","المتحف البريطاني","متاحف الفاتيكان"], c:0},
+{cat:"ثقافة عامة", q:"كم عدد أرجل العنكبوت؟", opts:["8","6","10","4"], c:0},
+{cat:"ثقافة عامة", q:"ما هو الحيوان الذي يُطلق عليه «سفينة الصحراء»؟", opts:["الجمل","الحصان","الحمار","الفيل"], c:0},
+{cat:"ثقافة عامة", q:"أين يوجد تمثال الحرية الشهير؟", opts:["مدخل ميناء نيويورك","لندن","باريس","سيدني"], c:0},
+{cat:"ثقافة عامة", q:"أين يقع تمثال أبو الهول (سفنكس الجيزة) الشهير؟", opts:["مصر","العراق","الأردن","لبنان"], c:0},
+{cat:"ثقافة عامة", q:"ما هو أكبر عضو في جسم الإنسان من حيث المساحة؟", opts:["الجلد","الكبد","الرئة","الأمعاء"], c:0},
+// طبيعة وحيوانات
+{cat:"طبيعة", q:"ما هو أكبر حيوان ثديي في العالم؟", opts:["الحوت الأزرق","الفيل الأفريقي","الزرافة","الحوت الأحدب"], c:0},
+{cat:"طبيعة", q:"كم عدد قلوب الأخطبوط؟", opts:["3","1","2","4"], c:0},
+{cat:"طبيعة", q:"ما هو الحيوان المعروف بـ«ملك الغابة»؟", opts:["الأسد","النمر","الفيل","الدب"], c:0},
+{cat:"طبيعة", q:"أي حيوان يستطيع تغيير لون جلده للتمويه بشكل مميز؟", opts:["الحرباء","الأفعى","السلحفاة","الضفدع"], c:0},
+{cat:"طبيعة", q:"ما هو أطول حيوان بري من حيث الارتفاع؟", opts:["الزرافة","الفيل","الجمل","الحصان"], c:0},
+{cat:"طبيعة", q:"كم عدد أرجل الحشرة عادةً؟", opts:["6","8","4","10"], c:0},
+{cat:"طبيعة", q:"ما اسم العملية التي تتحول فيها اليرقة إلى فراشة؟", opts:["التحول الشكلي الكامل","التبخر","الانسلاخ فقط","التكاثر"], c:0},
+{cat:"طبيعة", q:"أي هذه الثدييات يضع بيضاً بدلاً من ولادة صغار؟", opts:["خلد الماء (البلاتيبوس)","الحوت","الدلفين","الفقمة"], c:0},
+{cat:"طبيعة", q:"ما هو أكبر طائر حي في العالم من حيث الوزن (لا يطير)؟", opts:["النعامة","البطريق الإمبراطوري","النسر","الدجاج"], c:0},
+{cat:"طبيعة", q:"أي هذه الحيوانات يعيش أساساً في القطب الجنوبي؟", opts:["البطريق","الدب القطبي","الكنغر","الباندا"], c:0},
+{cat:"طبيعة", q:"ما هو الحيوان المعروف بقدرته الفريدة على الطيران للخلف؟", opts:["الطائر الطنان","النسر","البومة","الحمامة"], c:0},
+{cat:"طبيعة", q:"أي هذه الحيوانات نباتي بالكامل ولا يأكل اللحوم؟", opts:["الباندا العملاق","الأسد","الذئب","النمر"], c:0},
+{cat:"طبيعة", q:"ما اسم أكبر الزواحف الحية في العالم؟", opts:["تمساح المياه المالحة","ثعبان الأناكوندا","السحلية الكومودو","السلحفاة العملاقة"], c:0},
+{cat:"طبيعة", q:"كم تبلغ مدة حمل الفيلة تقريباً؟", opts:["حوالي 22 شهراً","9 أشهر","12 شهراً","6 أشهر"], c:0},
+{cat:"طبيعة", q:"أي هذه الثدييات يمتلك أطول رقبة نسبياً؟", opts:["الزرافة","الجمل","الحصان","الفيل"], c:0},
+];
+
+const COLORS = ["#3FA98C","#E7B44C","#E4636F","#7C8CF0"];
+const QUESTION_MS = 15000;
+const REVEAL_MS = 4000;
+const MAX_PLAYERS = 4;
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+function uid(){ return (crypto.randomUUID ? crypto.randomUUID() : ('id-'+Math.random().toString(36).slice(2)+Date.now())); }
+function genCode(){ let s=''; for(let i=0;i<5;i++) s+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]; return s; }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+async function sGet(key){
+  try{ const r = await window.storage.get(key, true); return r && r.value ? JSON.parse(r.value) : null; }
+  catch(e){ return null; }
+}
+async function sSet(key, val){
+  try{ await window.storage.set(key, JSON.stringify(val), true); return true; }
+  catch(e){ return false; }
+}
+async function sDelete(key){ try{ await window.storage.delete(key, true); }catch(e){} }
+async function sList(prefix){
+  try{ const r = await window.storage.list(prefix, true); return (r && r.keys) ? r.keys : []; }
+  catch(e){ return []; }
+}
+
+/* ================= APP STATE ================= */
+const me = { id: uid(), name: '' };
+let screen = 'home';
+let roomCode = null;
+let isHost = false;
+let statusMsg = '';
+let cachedMeta = null;
+let cachedPlayers = [];
+let answeredIdsThisRound = [];
+let myAnsweredIndex = -1; // question index I already answered
+let mainTimer = null;
+let fastTimer = null;
+
+const app = document.getElementById('app');
+
+function metaKey(){ return `room:${roomCode}:meta`; }
+function playerPrefix(){ return `room:${roomCode}:player:`; }
+function playerKey(id){ return `room:${roomCode}:player:${id}`; }
+function answerPrefix(qi){ return `room:${roomCode}:answer:${qi}:`; }
+function answerKey(qi,id){ return `room:${roomCode}:answer:${qi}:${id}`; }
+
+function initials(name){ return (name||'?').trim().slice(0,1).toUpperCase(); }
+
+/* ================= NAVIGATION ================= */
+function stopTimers(){
+  if(mainTimer){ clearInterval(mainTimer); mainTimer=null; }
+  if(fastTimer){ clearInterval(fastTimer); fastTimer=null; }
+}
+
+async function leaveRoom(){
+  if(roomCode){ await sDelete(playerKey(me.id)); }
+  stopTimers();
+  roomCode=null; isHost=false; cachedMeta=null; cachedPlayers=[]; answeredIdsThisRound=[]; myAnsweredIndex=-1;
+  screen='home'; statusMsg='';
+  render();
+}
+
+/* ================= CREATE / JOIN ================= */
+async function createRoom(){
+  const nameInput = document.getElementById('nameInput');
+  const name = nameInput ? nameInput.value.trim() : '';
+  if(!name){ statusMsg='الرجاء إدخال اسمك أولاً'; render(); return; }
+  me.name = name;
+  roomCode = genCode();
+  isHost = true;
+  const meta = {
+    code: roomCode, hostId: me.id, status:'lobby',
+    questionCount: 10, currentIndex:-1, questions:[],
+    questionStartedAt:0, revealAt:0
+  };
+  await sSet(metaKey(), meta);
+  await sSet(playerKey(me.id), {id:me.id, name:me.name, score:0, joinedAt:Date.now(), colorIndex:0});
+  screen='lobby'; statusMsg='';
+  render();
+  startLoop();
+}
+
+async function joinRoom(){
+  const nameInput = document.getElementById('nameInput');
+  const codeInput = document.getElementById('codeInput');
+  const name = nameInput ? nameInput.value.trim() : '';
+  const code = codeInput ? codeInput.value.trim().toUpperCase() : '';
+  if(!name){ statusMsg='الرجاء إدخال اسمك أولاً'; render(); return; }
+  if(!code){ statusMsg='الرجاء إدخال رمز الغرفة'; render(); return; }
+  const meta = await sGet(`room:${code}:meta`);
+  if(!meta){ statusMsg='لم يتم العثور على هذه الغرفة'; render(); return; }
+  const tmpRoom = code;
+  const existingKeys = await sList(`room:${tmpRoom}:player:`);
+  if(existingKeys.length >= MAX_PLAYERS){ statusMsg='الغرفة ممتلئة (4 لاعبين كحد أقصى)'; render(); return; }
+  me.name = name;
+  roomCode = tmpRoom;
+  isHost = (meta.hostId === me.id);
+  const usedColors = new Set();
+  for(const k of existingKeys){ const p = await sGet(k); if(p) usedColors.add(p.colorIndex); }
+  let colorIndex = 0;
+  for(let i=0;i<4;i++){ if(!usedColors.has(i)){ colorIndex=i; break; } }
+  await sSet(playerKey(me.id), {id:me.id, name:me.name, score:0, joinedAt:Date.now(), colorIndex});
+  screen='lobby'; statusMsg='';
+  render();
+  startLoop();
+}
+
+/* ================= LOBBY ACTIONS ================= */
+async function setQuestionCount(n){
+  if(!isHost || !cachedMeta) return;
+  cachedMeta.questionCount = n;
+  await sSet(metaKey(), cachedMeta);
+  render();
+}
+
+async function startGame(){
+  if(!isHost || !cachedMeta) return;
+  if(cachedPlayers.length < 2){ return; }
+  const chosen = shuffle(QUESTIONS).slice(0, cachedMeta.questionCount);
+  cachedMeta.questions = chosen;
+  cachedMeta.currentIndex = 0;
+  cachedMeta.status = 'playing';
+  cachedMeta.questionStartedAt = Date.now();
+  cachedMeta.revealAt = 0;
+  await sSet(metaKey(), cachedMeta);
+}
+
+async function playAgain(){
+  if(!isHost || !cachedMeta) return;
+  for(const p of cachedPlayers){ p.score = 0; await sSet(playerKey(p.id), p); }
+  cachedMeta.status = 'lobby';
+  cachedMeta.currentIndex = -1;
+  cachedMeta.questions = [];
+  cachedMeta.questionStartedAt = 0;
+  cachedMeta.revealAt = 0;
+  await sSet(metaKey(), cachedMeta);
+  myAnsweredIndex = -1;
+  answeredIdsThisRound = [];
+}
+
+/* ================= ANSWER ================= */
+async function submitAnswer(optIndex){
+  if(!cachedMeta || cachedMeta.status!=='playing') return;
+  const qi = cachedMeta.currentIndex;
+  if(myAnsweredIndex === qi) return;
+  myAnsweredIndex = qi;
+  render();
+  await sSet(answerKey(qi, me.id), {optionIndex: optIndex, answeredAt: Date.now()});
+}
+
+/* ================= MAIN LOOP ================= */
+function startLoop(){
+  stopTimers();
+  mainTimer = setInterval(tick, 1000);
+  fastTimer = setInterval(updateTimerRingOnly, 250);
+  tick();
+}
+
+async function tick(){
+  if(!roomCode) return;
+  const meta = await sGet(metaKey());
+  if(!meta){
+    cachedMeta = null;
+    render();
+    return;
+  }
+  const keys = await sList(playerPrefix());
+  const players = [];
+  for(const k of keys){ const p = await sGet(k); if(p) players.push(p); }
+  players.sort((a,b)=> (a.joinedAt||0)-(b.joinedAt||0));
+  cachedPlayers = players;
+  cachedMeta = meta;
+
+  if(meta.status === 'playing'){
+    const aKeys = await sList(answerPrefix(meta.currentIndex));
+    answeredIdsThisRound = aKeys.map(k => k.split(':').pop());
+  }
+
+  if(isHost && meta.hostId===me.id){
+    await hostTick(meta, players);
+  }
+  render();
+}
+
+async function hostTick(meta, players){
+  const now = Date.now();
+  if(meta.status === 'playing'){
+    const qi = meta.currentIndex;
+    const elapsed = now - meta.questionStartedAt;
+    const aKeys = await sList(answerPrefix(qi));
+    if(elapsed >= QUESTION_MS || (players.length>0 && aKeys.length >= players.length)){
+      const question = meta.questions[qi];
+      for(const p of players){
+        const ans = await sGet(answerKey(qi, p.id));
+        if(ans && ans.optionIndex === question.c){
+          const timeLeft = Math.max(0, QUESTION_MS - (ans.answeredAt - meta.questionStartedAt));
+          const bonus = Math.round((timeLeft/QUESTION_MS)*5);
+          p.score = (p.score||0) + 10 + bonus;
+          p._gained = 10+bonus;
+          await sSet(playerKey(p.id), p);
+        } else {
+          p._gained = 0;
+        }
+      }
+      meta.status='reveal';
+      meta.revealAt = now;
+      await sSet(metaKey(), meta);
+    }
+  } else if(meta.status === 'reveal'){
+    if(now - meta.revealAt >= REVEAL_MS){
+      const next = meta.currentIndex+1;
+      if(next >= meta.questions.length){
+        meta.status='finished';
+      } else {
+        meta.status='playing';
+        meta.currentIndex = next;
+        meta.questionStartedAt = now;
+      }
+      await sSet(metaKey(), meta);
+    }
+  }
+}
+
+function updateTimerRingOnly(){
+  if(!cachedMeta || cachedMeta.status!=='playing') return;
+  const ring = document.getElementById('timerRing');
+  const num = document.getElementById('timerNum');
+  if(!ring || !num) return;
+  const elapsed = Date.now() - cachedMeta.questionStartedAt;
+  const remainingMs = Math.max(0, QUESTION_MS - elapsed);
+  const remainingS = Math.ceil(remainingMs/1000);
+  const pct = Math.max(0, (remainingMs/QUESTION_MS)*100);
+  ring.style.setProperty('--pct', pct.toFixed(1));
+  ring.style.setProperty('--ring-color', remainingS<=5 ? 'var(--rose)' : 'var(--teal)');
+  num.textContent = remainingS;
+}
+
+/* ================= RENDER ================= */
+function render(){
+  app.innerHTML = '';
+  if(screen==='home' || !roomCode) renderHome();
+  else if(!cachedMeta) renderClosed();
+  else if(cachedMeta.status==='lobby') renderLobby();
+  else if(cachedMeta.status==='playing') renderPlaying();
+  else if(cachedMeta.status==='reveal') renderReveal();
+  else if(cachedMeta.status==='finished') renderFinished();
+}
+
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+
+function renderHome(){
+  const wrap = el(`
+    <div class="wrap fade-in">
+      <div class="hero">
+        <div class="badge">لعبة أسئلة جماعية أونلاين</div>
+        <h1>ساحة <span>المعرفة</span></h1>
+        <p>تحدَّ أصدقاءك مباشرة عبر الإنترنت — من أي مكان، على أي شبكة</p>
+      </div>
+      <div class="card">
+        <div class="field">
+          <label>اسمك</label>
+          <input id="nameInput" type="text" placeholder="اكتب اسمك هنا" maxlength="16" value="${me.name||''}">
+        </div>
+        <button class="btn btn-primary" id="createBtn">إنشاء غرفة جديدة</button>
+        <div class="divider">أو انضم لغرفة موجودة</div>
+        <div class="join-row">
+          <input id="codeInput" type="text" placeholder="رمز الغرفة" maxlength="5">
+          <button class="btn btn-gold" id="joinBtn">انضمام</button>
+        </div>
+        <div class="status-msg">${statusMsg}</div>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('createBtn').onclick = createRoom;
+  document.getElementById('joinBtn').onclick = joinRoom;
+}
+
+function renderClosed(){
+  const wrap = el(`
+    <div class="wrap fade-in">
+      <div class="card" style="text-align:center;">
+        <h3 style="margin-bottom:10px;">انتهت هذه الغرفة أو لم تعد متاحة</h3>
+        <button class="btn btn-ghost" id="backBtn" style="margin-top:10px;">العودة للرئيسية</button>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('backBtn').onclick = leaveRoom;
+}
+
+function topBar(){
+  return `
+    <div class="topbar">
+      <div class="room-chip">🎯 ${roomCode}</div>
+      <button class="leave-btn" id="leaveBtn">✕</button>
+    </div>
+  `;
+}
+
+function playersGridHTML(){
+  let slots = '';
+  for(let i=0;i<MAX_PLAYERS;i++){
+    const p = cachedPlayers[i];
+    if(p){
+      slots += `
+        <div class="pslot">
+          <div class="avatar" style="background:${COLORS[p.colorIndex%4]}">${initials(p.name)}</div>
+          <div>
+            <div class="pname">${p.name}${p.id===cachedMeta.hostId?' 👑':''}</div>
+            <div class="pscore">${p.score||0} نقطة</div>
+          </div>
+        </div>`;
+    } else {
+      slots += `<div class="pslot empty">بانتظار لاعب…</div>`;
+    }
+  }
+  return `<div class="players-grid">${slots}</div>`;
+}
+
+function renderLobby(){
+  const wrap = el(`
+    <div class="wrap fade-in">
+      ${topBar()}
+      <div class="ticket">
+        <div class="lbl">رمز الغرفة — شاركه مع أصدقائك</div>
+        <div class="code">${roomCode}</div>
+        <button id="copyBtn">نسخ الرمز</button>
+      </div>
+      <div class="section-lbl">اللاعبون (${cachedPlayers.length}/4)</div>
+      ${playersGridHTML()}
+      ${isHost ? `
+        <div class="card">
+          <div class="section-lbl" style="margin-top:0;">عدد الأسئلة</div>
+          <div class="qcount-row">
+            <button class="qcount-btn ${cachedMeta.questionCount===10?'active':''}" data-n="10">10</button>
+            <button class="qcount-btn ${cachedMeta.questionCount===15?'active':''}" data-n="15">15</button>
+            <button class="qcount-btn ${cachedMeta.questionCount===20?'active':''}" data-n="20">20</button>
+          </div>
+          <button class="btn btn-primary" id="startBtn" style="margin-top:14px;" ${cachedPlayers.length<2?'disabled':''}>
+            ${cachedPlayers.length<2?'بانتظار لاعب ثانٍ على الأقل':'ابدأ اللعبة 🚀'}
+          </button>
+        </div>
+      ` : `<div class="small-hint">بانتظار أن يبدأ صاحب الغرفة اللعبة…</div>`}
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('leaveBtn').onclick = leaveRoom;
+  const copyBtn = document.getElementById('copyBtn');
+  if(copyBtn) copyBtn.onclick = ()=>{
+    try{ navigator.clipboard.writeText(roomCode); copyBtn.textContent='تم النسخ ✓'; setTimeout(()=>copyBtn.textContent='نسخ الرمز',1500); }catch(e){}
+  };
+  if(isHost){
+    document.querySelectorAll('.qcount-btn').forEach(b=>{
+      b.onclick = ()=> setQuestionCount(parseInt(b.dataset.n,10));
+    });
+    const startBtn = document.getElementById('startBtn');
+    if(startBtn) startBtn.onclick = startGame;
+  }
+}
+
+function renderPlaying(){
+  const qi = cachedMeta.currentIndex;
+  const q = cachedMeta.questions[qi];
+  const total = cachedMeta.questions.length;
+  const answered = myAnsweredIndex === qi;
+
+  let optsHTML = '';
+  q.opts.forEach((opt, idx)=>{
+    const sel = answered && myAnsweredIndex===qi;
+    optsHTML += `<div class="opt c${idx} ${answered?'disabled':''} ${sel && document.body ? '' : ''}" data-idx="${idx}" id="opt${idx}">${opt}</div>`;
+  });
+
+  let avatarsHTML = '';
+  cachedPlayers.forEach(p=>{
+    const done = answeredIdsThisRound.includes(p.id);
+    avatarsHTML += `<div class="mini-av ${done?'done':''}" style="background:${COLORS[p.colorIndex%4]}" title="${p.name}">${initials(p.name)}</div>`;
+  });
+
+  const wrap = el(`
+    <div class="wrap fade-in">
+      ${topBar()}
+      <div class="card">
+        <div class="playbar">
+          <div class="qmeta">
+            <div class="qnum">السؤال ${qi+1} من ${total}</div>
+            <div class="qcat">${q.cat}</div>
+          </div>
+          <div class="timer-ring" id="timerRing"><span id="timerNum">15</span></div>
+        </div>
+        <div class="qtext">${q.q}</div>
+        <div class="opts">${optsHTML}</div>
+        <div class="waitline">${answered ? 'تم إرسال إجابتك — بانتظار باقي اللاعبين…' : 'اختر إجابتك بسرعة لتحصل على نقاط إضافية!'}</div>
+        <div class="answered-row">${avatarsHTML}</div>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('leaveBtn').onclick = leaveRoom;
+  if(!answered){
+    q.opts.forEach((opt, idx)=>{
+      const node = document.getElementById('opt'+idx);
+      if(node) node.onclick = ()=> submitAnswer(idx);
+    });
+  }
+  updateTimerRingOnly();
+}
+
+function renderReveal(){
+  const qi = cachedMeta.currentIndex;
+  const q = cachedMeta.questions[qi];
+  const myAns = null; // we don't keep local copy of chosen index beyond submission; use answeredIdsThisRound only for who answered
+
+  let optsHTML = '';
+  q.opts.forEach((opt, idx)=>{
+    let cls = 'opt c'+idx+' disabled';
+    if(idx === q.c) cls += ' correct';
+    else cls += ' dim';
+    optsHTML += `<div class="${cls}">${opt}${idx===q.c?' ✓':''}</div>`;
+  });
+
+  let gainHTML = '';
+  cachedPlayers.forEach(p=>{
+    const g = p._gained;
+    if(g === undefined) return;
+    gainHTML += `<div class="gain-pill"><div class="avatar" style="width:22px;height:22px;font-size:11px;background:${COLORS[p.colorIndex%4]}">${initials(p.name)}</div>${p.name} <span class="plus">${g>0?'+':''}${g}</span></div>`;
+  });
+
+  const wrap = el(`
+    <div class="wrap fade-in">
+      ${topBar()}
+      <div class="card">
+        <div class="reveal-note">✔ الإجابة الصحيحة</div>
+        <div class="qtext" style="font-size:18px;">${q.q}</div>
+        <div class="opts">${optsHTML}</div>
+        ${gainHTML ? `<div class="gain-row">${gainHTML}</div>` : ''}
+        <div class="small-hint">السؤال التالي بعد لحظات…</div>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('leaveBtn').onclick = leaveRoom;
+}
+
+function renderFinished(){
+  const sorted = cachedPlayers.slice().sort((a,b)=>(b.score||0)-(a.score||0));
+  const top3 = sorted.slice(0,3);
+  const order = [1,0,2].filter(i=>top3[i]); // 2nd,1st,3rd visual order
+  let podHTML = '';
+  order.forEach(i=>{
+    const p = top3[i];
+    if(!p) return;
+    const rankClass = i===0?'pod-1':(i===1?'pod-2':'pod-3');
+    const medal = i===0?'🥇':(i===1?'🥈':'🥉');
+    podHTML += `
+      <div class="pod-col ${rankClass}">
+        <div class="avatar" style="background:${COLORS[p.colorIndex%4]}">${initials(p.name)}</div>
+        <div class="pod-name">${p.name}</div>
+        <div class="pod-score">${p.score||0} نقطة</div>
+        <div class="pod-bar"><span class="rank">${medal}</span></div>
+      </div>`;
+  });
+
+  let listHTML = '';
+  sorted.forEach((p, i)=>{
+    listHTML += `
+      <div class="lb-row">
+        <div class="lb-rank">${i+1}</div>
+        <div class="avatar" style="background:${COLORS[p.colorIndex%4]}">${initials(p.name)}</div>
+        <div class="lb-name">${p.name}</div>
+        <div class="flip">${p.score||0}</div>
+      </div>`;
+  });
+
+  const wrap = el(`
+    <div class="wrap fade-in">
+      ${topBar()}
+      <div class="hero" style="padding-top:0;">
+        <div class="badge">انتهت الجولة</div>
+        <h1 style="font-size:26px;">النتائج النهائية</h1>
+      </div>
+      <div class="podium">${podHTML}</div>
+      <div style="width:100%;">${listHTML}</div>
+      <div class="footer-actions">
+        ${isHost ? `<button class="btn btn-primary" id="againBtn">لعب جولة جديدة</button>` : ''}
+        <button class="btn btn-ghost" id="homeBtn">العودة للرئيسية</button>
+      </div>
+    </div>
+  `);
+  app.appendChild(wrap);
+  document.getElementById('leaveBtn').onclick = leaveRoom;
+  document.getElementById('homeBtn').onclick = leaveRoom;
+  const againBtn = document.getElementById('againBtn');
+  if(againBtn) againBtn.onclick = playAgain;
+}
+
+render();
+})();
+</script>
+</body>
+</html>
