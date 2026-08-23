@@ -376,18 +376,23 @@ function uid(){ return (crypto.randomUUID ? crypto.randomUUID() : ('id-'+Math.ra
 function genCode(){ let s=''; for(let i=0;i<5;i++) s+=CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]; return s; }
 function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
+const HAS_STORAGE = !!(window.storage && typeof window.storage.get === 'function' && typeof window.storage.set === 'function');
+
 async function sGet(key){
+  if(!HAS_STORAGE) return null;
   try{ const r = await window.storage.get(key, true); return r && r.value ? JSON.parse(r.value) : null; }
-  catch(e){ return null; }
+  catch(e){ console.warn('sGet failed for', key, e); return null; }
 }
 async function sSet(key, val){
+  if(!HAS_STORAGE) return false;
   try{ await window.storage.set(key, JSON.stringify(val), true); return true; }
-  catch(e){ return false; }
+  catch(e){ console.warn('sSet failed for', key, e); return false; }
 }
-async function sDelete(key){ try{ await window.storage.delete(key, true); }catch(e){} }
+async function sDelete(key){ if(!HAS_STORAGE) return; try{ await window.storage.delete(key, true); }catch(e){} }
 async function sList(prefix){
+  if(!HAS_STORAGE) return [];
   try{ const r = await window.storage.list(prefix, true); return (r && r.keys) ? r.keys : []; }
-  catch(e){ return []; }
+  catch(e){ console.warn('sList failed for', prefix, e); return []; }
 }
 
 /* ================= APP STATE ================= */
@@ -423,7 +428,7 @@ function stopTimers(){
 async function leaveRoom(){
   if(roomCode){ await sDelete(playerKey(me.id)); }
   stopTimers();
-  roomCode=null; isHost=false; cachedMeta=null; cachedPlayers=[]; answeredIdsThisRound=[]; myAnsweredIndex=-1;
+  roomCode=null; isHost=false; cachedMeta=null; cachedPlayers=[]; answeredIdsThisRound=[]; myAnsweredIndex=-1; missCount=0;
   screen='home'; statusMsg='';
   render();
 }
@@ -537,10 +542,14 @@ async function tick(){
   if(!roomCode) return;
   const meta = await sGet(metaKey());
   if(!meta){
-    cachedMeta = null;
-    render();
+    missCount++;
+    if(missCount >= 4){
+      cachedMeta = null;
+      render();
+    }
     return;
   }
+  missCount = 0;
   const keys = await sList(playerPrefix());
   const players = [];
   for(const k of keys){ const p = await sGet(k); if(p) players.push(p); }
@@ -633,37 +642,50 @@ function renderHome(){
         <h1>ساحة <span>المعرفة</span></h1>
         <p>تحدَّ أصدقاءك مباشرة عبر الإنترنت — من أي مكان، على أي شبكة</p>
       </div>
+      ${!HAS_STORAGE ? `
+      <div class="card" style="border-color:var(--rose);">
+        <div style="text-align:center; font-weight:700; color:var(--rose); margin-bottom:8px;">تعذّر الاتصال بالتخزين المشترك</div>
+        <div style="text-align:center; font-size:13px; color:var(--muted); line-height:1.8;">
+          هذا يصير عادة إذا فتحت الملف كملف منزّل مباشرة على جهازك بدل فتحه من داخل صفحة المحادثة نفسها.
+          لازم كل اللاعبين يفتحون اللعبة من نفس رابط/معاينة الملف داخل Claude حتى تشتغل الغرفة المشتركة.
+        </div>
+      </div>` : ''}
       <div class="card">
         <div class="field">
           <label>اسمك</label>
-          <input id="nameInput" type="text" placeholder="اكتب اسمك هنا" maxlength="16" value="${me.name||''}">
+          <input id="nameInput" type="text" placeholder="اكتب اسمك هنا" maxlength="16" value="${me.name||''}" ${!HAS_STORAGE?'disabled':''}>
         </div>
-        <button class="btn btn-primary" id="createBtn">إنشاء غرفة جديدة</button>
+        <button class="btn btn-primary" id="createBtn" ${!HAS_STORAGE?'disabled':''}>إنشاء غرفة جديدة</button>
         <div class="divider">أو انضم لغرفة موجودة</div>
         <div class="join-row">
-          <input id="codeInput" type="text" placeholder="رمز الغرفة" maxlength="5">
-          <button class="btn btn-gold" id="joinBtn">انضمام</button>
+          <input id="codeInput" type="text" placeholder="رمز الغرفة" maxlength="5" ${!HAS_STORAGE?'disabled':''}>
+          <button class="btn btn-gold" id="joinBtn" ${!HAS_STORAGE?'disabled':''}>انضمام</button>
         </div>
         <div class="status-msg">${statusMsg}</div>
       </div>
     </div>
   `);
   app.appendChild(wrap);
-  document.getElementById('createBtn').onclick = createRoom;
-  document.getElementById('joinBtn').onclick = joinRoom;
+  if(HAS_STORAGE){
+    document.getElementById('createBtn').onclick = createRoom;
+    document.getElementById('joinBtn').onclick = joinRoom;
+  }
 }
 
 function renderClosed(){
   const wrap = el(`
     <div class="wrap fade-in">
       <div class="card" style="text-align:center;">
-        <h3 style="margin-bottom:10px;">انتهت هذه الغرفة أو لم تعد متاحة</h3>
-        <button class="btn btn-ghost" id="backBtn" style="margin-top:10px;">العودة للرئيسية</button>
+        <h3 style="margin-bottom:10px;">ما قدرنا نوصل لبيانات هذه الغرفة</h3>
+        <div class="small-hint" style="margin-bottom:16px;">قد يكون الاتصال بطيء، أو الغرفة انحذفت. جرّب المحاولة مرة ثانية قبل ما ترجع للرئيسية.</div>
+        <button class="btn btn-gold" id="retryBtn" style="margin-bottom:10px;">حاول مرة أخرى</button>
+        <button class="btn btn-ghost" id="backBtn">العودة للرئيسية</button>
       </div>
     </div>
   `);
   app.appendChild(wrap);
   document.getElementById('backBtn').onclick = leaveRoom;
+  document.getElementById('retryBtn').onclick = ()=>{ missCount=0; tick(); };
 }
 
 function topBar(){
